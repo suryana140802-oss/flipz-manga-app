@@ -56,8 +56,8 @@ Download and install the latest APK build directly from GitHub Releases:
 
 | Variant | Size | Description | Download Link |
 | :--- | :--- | :--- | :--- |
-| **Universal Release** | ~52 MB | Compatible with all Android smartphones and tablets | [Download Universal APK](https://github.com/suryana140802-oss/flipz-manga-app/releases/download/v2.0.0/FlipzManga-v2.0-Universal.apk) |
-| **arm64-v8a Release** | ~34 MB | Optimized specifically for modern 64-bit devices | [Download arm64 APK](https://github.com/suryana140802-oss/flipz-manga-app/releases/download/v2.0.0/FlipzManga-v2.0-arm64.apk) |
+| **Universal Release** | ~52 MB | Compatible with all Android smartphones and tablets | [Download Universal APK](https://github.com/suryana140802-oss/flipz-manga-app/releases/download/v2.1.0/FlipzManga-v2.1-Universal.apk) |
+| **arm64-v8a Release** | ~34 MB | Optimized specifically for modern 64-bit devices | [Download arm64 APK](https://github.com/suryana140802-oss/flipz-manga-app/releases/download/v2.1.0/FlipzManga-v2.1-arm64.apk) |
 
 > Visit the [GitHub Releases Page](https://github.com/suryana140802-oss/flipz-manga-app/releases) for detailed release notes and version history.
 
