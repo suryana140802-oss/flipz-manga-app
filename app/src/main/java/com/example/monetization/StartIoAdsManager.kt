@@ -98,8 +98,9 @@ object StartIoAdsManager {
                     }
 
                     override fun adNotDisplayed(ad: Ad?) {
-                        Log.w(TAG, "Iklan reward gagal ditampilkan")
-                        postToast(activity, "Iklan belum siap ditampilkan, silakan coba lagi.")
+                        Log.w(TAG, "Iklan reward belum siap tampil, beralih ke Monetag...")
+                        MonetagManager.openDirectLink(activity)
+                        mainHandler.post { onRewardEarned() }
                         onAdClosed()
                     }
                 })
@@ -128,7 +129,9 @@ object StartIoAdsManager {
                             override fun adClicked(ad: Ad?) {}
 
                             override fun adNotDisplayed(ad: Ad?) {
-                                postToast(activity, "Iklan belum siap ditampilkan, silakan coba lagi.")
+                                Log.w(TAG, "Iklan fallback belum siap tampil, beralih ke Monetag...")
+                                MonetagManager.openDirectLink(activity)
+                                mainHandler.post { onRewardEarned() }
                                 onAdClosed()
                             }
                         })
@@ -136,8 +139,10 @@ object StartIoAdsManager {
 
                     override fun onFailedToReceiveAd(ad: Ad?) {
                         val fallbackError = ad?.errorMessage ?: errorMsg
-                        Log.w(TAG, "Gagal memuat iklan fallback: $fallbackError")
-                        postToast(activity, "Iklan sedang disiapkan oleh server Start.io. Silakan coba sesaat lagi.")
+                        Log.w(TAG, "Start.io No Fill ($fallbackError), beralih ke sponsor Monetag...")
+                        postToast(activity, "Membuka halaman sponsor Flipz Manga...")
+                        MonetagManager.openDirectLink(activity)
+                        mainHandler.post { onRewardEarned() }
                         onAdClosed()
                     }
                 })
