@@ -1,0 +1,35 @@
+*.iml
+.gradle
+.kotlin
+/local.properties
+local.properties
+.env
+debug.keystore
+
+# Build & OS
+.DS_Store
+/build
+build/
+*/build/
+/captures
+.externalNativeBuild
+.cxx
+
+# IDE
+.idea/
+.vscode/
+
+# Large binaries & temporary dumps (prevent exceeding GitHub 100MB limit)
+*.apk
+*.zip
+*.log
+*.html
+crash_log.txt
+log.txt
+deps.txt
+apk_builds/
+apk_unzip/
+app.zip
+scratch/
+ios_app/scratch/
+.dart_tool/

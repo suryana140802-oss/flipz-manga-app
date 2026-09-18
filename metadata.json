@@ -1,0 +1,6 @@
+{
+  "name": "Flipz Manga",
+  "description": "Authentic physical comic and manga reader featuring landscape dual-page spread, realistic 3D page curl physics, tactile paper textures, and distraction-free ghost HUD.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
