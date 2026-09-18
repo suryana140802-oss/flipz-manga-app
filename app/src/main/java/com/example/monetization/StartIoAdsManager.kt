@@ -59,105 +59,29 @@ object StartIoAdsManager {
     }
 
     /**
-     * Menampilkan iklan Rewarded Video ("Dukung Flipz (Tonton Iklan Singkat)").
+     * Menampilkan iklan reward dukungan (100% Monetag SmartLink).
      */
     fun showRewarded(
         activity: Activity,
         onRewardEarned: () -> Unit,
         onAdClosed: () -> Unit = {}
     ) {
-        if (!isInitialized) {
-            initialize(activity)
-        }
-
-        postToast(activity, "Memuat iklan video...")
-
-        val rewardedAd = StartAppAd(activity)
-        rewardedAd.setVideoListener(object : VideoListener {
-            override fun onVideoCompleted() {
-                Log.d(TAG, "Video reward selesai ditonton!")
-                mainHandler.post { onRewardEarned() }
-            }
-        })
-
-        rewardedAd.loadAd(StartAppAd.AdMode.REWARDED_VIDEO, object : AdEventListener {
-            override fun onReceiveAd(ad: Ad) {
-                Log.d(TAG, "Iklan reward berhasil dimuat, menampilkan...")
-                rewardedAd.showAd(object : AdDisplayListener {
-                    override fun adDisplayed(ad: Ad?) {
-                        Log.d(TAG, "Iklan reward sedang tayang")
-                    }
-
-                    override fun adHidden(ad: Ad?) {
-                        Log.d(TAG, "Iklan reward ditutup")
-                        onAdClosed()
-                    }
-
-                    override fun adClicked(ad: Ad?) {
-                        Log.d(TAG, "Iklan reward diklik")
-                    }
-
-                    override fun adNotDisplayed(ad: Ad?) {
-                        Log.w(TAG, "Iklan reward belum siap tampil, beralih ke Monetag...")
-                        MonetagManager.openDirectLink(activity)
-                        mainHandler.post { onRewardEarned() }
-                        onAdClosed()
-                    }
-                })
-            }
-
-            override fun onFailedToReceiveAd(ad: Ad?) {
-                val errorMsg = ad?.errorMessage ?: "Gagal memuat iklan"
-                Log.w(TAG, "Reward video No Fill ($errorMsg), mencoba fallback ke Interstitial...")
-
-                // Fallback: jika video reward belum tersedia di server, tampilkan interstitial
-                val fallbackAd = StartAppAd(activity)
-                fallbackAd.loadAd(StartAppAd.AdMode.AUTOMATIC, object : AdEventListener {
-                    override fun onReceiveAd(ad: Ad) {
-                        Log.d(TAG, "Iklan fallback interstitial berhasil dimuat, menampilkan...")
-                        fallbackAd.showAd(object : AdDisplayListener {
-                            override fun adDisplayed(ad: Ad?) {
-                                Log.d(TAG, "Iklan fallback sedang tayang")
-                            }
-
-                            override fun adHidden(ad: Ad?) {
-                                Log.d(TAG, "Iklan fallback ditutup, beri reward")
-                                mainHandler.post { onRewardEarned() }
-                                onAdClosed()
-                            }
-
-                            override fun adClicked(ad: Ad?) {}
-
-                            override fun adNotDisplayed(ad: Ad?) {
-                                Log.w(TAG, "Iklan fallback belum siap tampil, beralih ke Monetag...")
-                                MonetagManager.openDirectLink(activity)
-                                mainHandler.post { onRewardEarned() }
-                                onAdClosed()
-                            }
-                        })
-                    }
-
-                    override fun onFailedToReceiveAd(ad: Ad?) {
-                        val fallbackError = ad?.errorMessage ?: errorMsg
-                        Log.w(TAG, "Start.io No Fill ($fallbackError), beralih ke sponsor Monetag...")
-                        postToast(activity, "Membuka halaman sponsor Flipz Manga...")
-                        MonetagManager.openDirectLink(activity)
-                        mainHandler.post { onRewardEarned() }
-                        onAdClosed()
-                    }
-                })
-            }
-        })
+        MonetagManager.openDirectLink(activity)
+        mainHandler.post { onRewardEarned() }
+        onAdClosed()
     }
 
     // Counter jumlah chapter yang dibuka
     private var chaptersOpenedCount: Int = 0
     private const val CHAPTERS_BETWEEN_ADS = 2
 
+    // Toggle giliran network iklan: false = Start.io, true = Monetag
+    private var isMonetagTurn: Boolean = false
+
     /**
      * Dipanggil setiap kali pembaca membuka chapter.
      * Iklan hanya akan muncul tepat setiap setelah membuka 2 chapter (misal: chapter 2, 4, 6, dst).
-     * Jika belum mencapai kelipatan 2, pembaca langsung membaca tanpa jeda iklan.
+     * Iklan muncul bergantian antara Start.io dan Monetag SmartLink.
      */
     fun onChapterOpened(
         activity: Activity,
@@ -167,8 +91,18 @@ object StartIoAdsManager {
         Log.i(TAG, "📖 Membuka chapter ke-$chaptersOpenedCount (Target iklan: tiap $CHAPTERS_BETWEEN_ADS chapter)")
 
         if (chaptersOpenedCount % CHAPTERS_BETWEEN_ADS == 0) {
-            Log.i(TAG, "🎯 Mencapai $chaptersOpenedCount chapter! Menampilkan iklan interstitial...")
-            showInterstitial(activity, forceShow = true, onAdClosed = onContinueToChapter)
+            val useMonetag = isMonetagTurn
+            isMonetagTurn = !isMonetagTurn // Bergantian untuk interval berikutnya
+
+            if (useMonetag) {
+                Log.i(TAG, "🎯 Giliran iklan Monetag (SmartLink)...")
+                postToast(activity, "Membuka sponsor Flipz Manga...")
+                MonetagManager.openDirectLink(activity)
+                onContinueToChapter()
+            } else {
+                Log.i(TAG, "🎯 Giliran iklan Start.io (Interstitial)...")
+                showInterstitial(activity, forceShow = true, onAdClosed = onContinueToChapter)
+            }
         } else {
             Log.d(TAG, "Lanjut membaca tanpa iklan (belum mencapai $CHAPTERS_BETWEEN_ADS chapter)")
             onContinueToChapter()

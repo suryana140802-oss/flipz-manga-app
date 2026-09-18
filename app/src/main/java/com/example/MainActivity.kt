@@ -218,16 +218,12 @@ class MainActivity : ComponentActivity() {
                                     onImportArchiveClick = { archivePicker.launch(arrayOf("*/*")) },
                                     onImportImagesClick = { imagesPicker.launch(arrayOf("image/*")) },
                                     onSupportClick = {
-                                        com.example.monetization.StartIoAdsManager.showRewarded(
-                                            activity = this@MainActivity,
-                                            onRewardEarned = {
-                                                Toast.makeText(
-                                                    this@MainActivity,
-                                                    "Terima kasih banyak atas dukunganmu untuk Flipz Manga! ❤️",
-                                                    Toast.LENGTH_LONG
-                                                ).show()
-                                            }
-                                        )
+                                        com.example.monetization.MonetagManager.openDirectLink(this@MainActivity)
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "Terima kasih banyak atas dukunganmu untuk Flipz Manga! ❤️",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     },
                                     onResumeReading = { resumeReading(it) }
                                 )
