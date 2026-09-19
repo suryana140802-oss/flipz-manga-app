@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
         com.example.worker.NotificationScheduler.schedulePeriodicChapterCheck(applicationContext)
 
         val notificationComicUrl = intent?.getStringExtra("OPEN_COMIC_URL")
+        val forceCheckUpdate = intent?.getBooleanExtra("SHOW_UPDATE_DIALOG", false) == true
 
         setContent {
             var isDarkTheme by remember { mutableStateOf(true) } // default: dark mode
@@ -82,7 +83,20 @@ class MainActivity : ComponentActivity() {
             var selectedComicUrl by remember {
                 mutableStateOf(notificationComicUrl ?: "")
             }
+            var availableUpdate by remember { mutableStateOf<com.example.updater.AppUpdateInfo?>(null) }
             val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+            // Pemeriksaan pembaruan aplikasi otomatis (GitHub Releases API)
+            androidx.compose.runtime.LaunchedEffect(Unit) {
+                try {
+                    val info = com.example.updater.AppUpdateManager.checkForUpdate(this@MainActivity)
+                    if (info != null && (info.isUpdateAvailable || forceCheckUpdate)) {
+                        availableUpdate = info
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Gagal cek update: ${e.message}")
+                }
+            }
 
             androidx.activity.compose.BackHandler(enabled = currentScreen != ScreenState.HOME) {
                 if (currentScreen == ScreenState.COMIC_DETAIL) {
@@ -296,6 +310,26 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                }
+
+                // Dialog Pembaruan Aplikasi
+                availableUpdate?.let { updateInfo ->
+                    com.example.ui.widgets.UpdateDialog(
+                        updateInfo = updateInfo,
+                        onUpdateClick = {
+                            val url = updateInfo.downloadUrl
+                            val ver = updateInfo.latestVersion
+                            availableUpdate = null
+                            com.example.updater.AppUpdateManager.startDownloadAndInstall(
+                                context = this@MainActivity,
+                                downloadUrl = url,
+                                versionName = ver
+                            )
+                        },
+                        onDismissRequest = {
+                            availableUpdate = null
+                        }
+                    )
                 }
             }
         }

@@ -22,6 +22,16 @@ class NewChapterCheckWorker(
 
     override suspend fun doWork(): Result {
         return try {
+            // Periksa ketersediaan pembaruan aplikasi di latar belakang
+            try {
+                val updateInfo = com.example.updater.AppUpdateManager.checkForUpdate(context)
+                if (updateInfo != null && updateInfo.isUpdateAvailable) {
+                    showAppUpdateNotification(updateInfo)
+                }
+            } catch (e: Exception) {
+                // Abaikan kesalahan koneksi sementara saat memeriksa update
+            }
+
             val database = ComicDatabase.getInstance(context)
             val bookmarks = database.bookmarkDao().getAllBookmarksList()
             if (bookmarks.isEmpty()) return Result.success()
@@ -119,5 +129,48 @@ class NewChapterCheckWorker(
             .build()
 
         notificationManager.notify(comicUrl.hashCode(), notification)
+    }
+
+    private fun showAppUpdateNotification(updateInfo: com.example.updater.AppUpdateInfo) {
+        val channelId = "flipz_app_updates"
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                "Pembaruan Aplikasi Flipz Manga",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifikasi rilis versi terbaru Flipz Manga"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("SHOW_UPDATE_DIALOG", true)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            999888,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setContentTitle("Pembaruan Flipz Manga Tersedia! 🚀")
+            .setContentText("Versi v${updateInfo.latestVersion} telah dirilis. Ketuk untuk memperbarui.")
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText("Versi v${updateInfo.latestVersion} telah tersedia!\n${updateInfo.releaseTitle}\nKetuk untuk mengunduh versi terbaru.")
+            )
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(999888, notification)
     }
 }
