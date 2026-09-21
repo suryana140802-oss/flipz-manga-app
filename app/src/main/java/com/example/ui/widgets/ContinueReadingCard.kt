@@ -40,11 +40,11 @@ fun ContinueReadingCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF0F1218))
-            .border(1.dp, Color(0xFF1E232E), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(colors.cardBackground)
+            .border(1.dp, colors.borderSubtle, RoundedCornerShape(16.dp))
             .clickable { onResume(progress) }
-            .padding(10.dp)
+            .padding(12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -57,9 +57,9 @@ fun ContinueReadingCard(
                     contentDescription = progress.comicTitle,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(width = 44.dp, height = 60.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFF1C202A))
+                        .size(width = 46.dp, height = 62.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(colors.deskMedium)
                 )
                 Spacer(Modifier.width(12.dp))
             }
@@ -91,7 +91,7 @@ fun ContinueReadingCard(
 
                 Text(
                     text = progress.comicTitle.ifBlank { "Komik Terakhir" },
-                    color = Color.White,
+                    color = colors.textPrimary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -103,23 +103,23 @@ fun ContinueReadingCard(
                 val chapterTxt = progress.chapterTitle.ifBlank { "Chapter Aktif" }
                 Text(
                     text = "$chapterTxt • Hal. $current/$total",
-                    color = Color(0xFF94A3B8),
+                    color = colors.textSecondary,
                     fontSize = 11.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(6.dp))
 
                 // Progress Bar
                 LinearProgressIndicator(
                     progress = { progressRatio },
                     modifier = Modifier
                         .fillMaxWidth(0.92f)
-                        .height(3.5.dp)
+                        .height(4.dp)
                         .clip(RoundedCornerShape(2.dp)),
                     color = colors.primary,
-                    trackColor = Color(0xFF1E232E)
+                    trackColor = colors.borderSubtle
                 )
             }
 
@@ -128,7 +128,7 @@ fun ContinueReadingCard(
             // Play / Resume Circular Button
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(colors.primary),
                 contentAlignment = Alignment.Center
@@ -137,7 +137,7 @@ fun ContinueReadingCard(
                     imageVector = Icons.Rounded.PlayArrow,
                     contentDescription = "Lanjut Baca",
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
         }

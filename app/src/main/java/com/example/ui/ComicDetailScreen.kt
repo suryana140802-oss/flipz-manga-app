@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -300,8 +301,8 @@ fun ComicDetailScreen(
                                 d.genres.forEach { genre ->
                                     Surface(
                                         shape = RoundedCornerShape(20.dp),
-                                        color = colors.primary.copy(alpha = 0.12f),
-                                        border = BorderStroke(1.dp, colors.primary.copy(alpha = 0.35f))
+                                        color = colors.pillTint,
+                                        border = BorderStroke(1.dp, colors.borderSubtle)
                                     ) {
                                         Text(
                                             text = genre,
@@ -325,8 +326,8 @@ fun ComicDetailScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             shape = RoundedCornerShape(16.dp),
-                            color = colors.deskMedium.copy(alpha = 0.6f),
-                            border = BorderStroke(1.dp, colors.hudBorder.copy(alpha = 0.25f))
+                            color = colors.cardBackground,
+                            border = BorderStroke(1.dp, colors.borderSubtle)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -405,21 +406,21 @@ fun ComicDetailScreen(
                         )
                         Surface(
                             shape = RoundedCornerShape(20.dp),
-                            color = colors.primary.copy(alpha = 0.12f),
-                            border = BorderStroke(1.dp, colors.primary.copy(alpha = 0.3f))
+                            color = colors.pillTint,
+                            border = BorderStroke(1.dp, colors.borderSubtle)
                         ) {
                             Text(
                                 text = "${d.chapters.size} Chapter",
                                 color = colors.primary,
                                 fontSize = 11.5.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
                     }
                 }
 
-                // --- 5. Chapter Items (Modern Cards) ---
+                // --- 5. Chapter Items (Modern Rounded Cards) ---
                 items(d.chapters) { chapter ->
                     val isRead = readChapterUrls.contains(chapter.url)
                     val isDownloaded = downloadedUrls.contains(chapter.url)
@@ -429,7 +430,7 @@ fun ComicDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 5.dp)
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(16.dp))
                             .clickable {
                                 coroutineScope.launch {
                                     readChapterDao.markChapterAsRead(
@@ -442,11 +443,11 @@ fun ComicDetailScreen(
                                 }
                                 onChapterClick(chapter, d)
                             },
-                        color = if (isRead) colors.deskMedium.copy(alpha = 0.38f) else colors.deskMedium.copy(alpha = 0.8f),
-                        shape = RoundedCornerShape(14.dp),
+                        color = if (isRead) colors.cardBackground.copy(alpha = 0.6f) else colors.cardBackground,
+                        shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(
                             1.dp,
-                            if (isRead) colors.hudBorder.copy(alpha = 0.15f) else colors.hudBorder.copy(alpha = 0.35f)
+                            if (isRead) colors.borderSubtle.copy(alpha = 0.5f) else colors.borderSubtle
                         )
                     ) {
                         Row(
@@ -456,11 +457,11 @@ fun ComicDetailScreen(
                             // Leading chapter icon pill
                             Box(
                                 modifier = Modifier
-                                    .size(36.dp)
+                                    .size(38.dp)
                                     .background(
-                                        if (isRead) colors.deskHighlight.copy(alpha = 0.3f)
-                                        else colors.primary.copy(alpha = 0.12f),
-                                        RoundedCornerShape(10.dp)
+                                        if (isRead) colors.deskMedium
+                                        else colors.pillTint,
+                                        RoundedCornerShape(12.dp)
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -478,7 +479,7 @@ fun ComicDetailScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = chapter.title,
-                                    color = if (isRead) colors.textMuted.copy(alpha = 0.55f) else colors.textPrimary,
+                                    color = if (isRead) colors.textMuted.copy(alpha = 0.6f) else colors.textPrimary,
                                     fontSize = 14.5.sp,
                                     fontWeight = if (isRead) FontWeight.Normal else FontWeight.SemiBold,
                                     maxLines = 1,
@@ -488,7 +489,7 @@ fun ComicDetailScreen(
                                     Spacer(modifier = Modifier.height(3.dp))
                                     Text(
                                         text = chapter.date,
-                                        color = colors.textMuted.copy(alpha = if (isRead) 0.4f else 0.8f),
+                                        color = colors.textSecondary.copy(alpha = if (isRead) 0.5f else 0.85f),
                                         fontSize = 12.sp
                                     )
                                 }
@@ -498,7 +499,7 @@ fun ComicDetailScreen(
                             if (isRead) {
                                 Surface(
                                     shape = RoundedCornerShape(6.dp),
-                                    color = colors.primary.copy(alpha = 0.12f),
+                                    color = colors.pillTint,
                                     modifier = Modifier.padding(start = 8.dp)
                                 ) {
                                     Row(
@@ -571,14 +572,14 @@ fun ComicDetailScreen(
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.05f))
-                                        .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)), CircleShape)
+                                        .background(colors.pillTint)
+                                        .border(BorderStroke(1.dp, colors.borderSubtle), CircleShape)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Rounded.DownloadForOffline,
                                         contentDescription = "Download Chapter Offline",
-                                        tint = colors.textSecondary.copy(alpha = 0.8f),
-                                        modifier = Modifier.size(20.dp)
+                                        tint = colors.primary,
+                                        modifier = Modifier.size(19.dp)
                                     )
                                 }
                             }
@@ -586,8 +587,61 @@ fun ComicDetailScreen(
                     }
                 }
 
-                // Bottom padding
-                item { Spacer(modifier = Modifier.height(36.dp)) }
+                // Bottom padding for floating CTA
+                item { Spacer(modifier = Modifier.height(96.dp)) }
+            }
+
+            // ── Floating Action Pill Button ("Mulai Membaca") ──────────────
+            val startChapter = d.chapters.lastOrNull() ?: d.chapters.firstOrNull()
+            if (startChapter != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 14.dp)
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .shadow(12.dp, CircleShape, spotColor = colors.primary.copy(alpha = 0.45f))
+                        .clip(CircleShape)
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(Color(0xFF0284C7), Color(0xFF38BDF8))
+                            )
+                        )
+                        .clickable {
+                            coroutineScope.launch {
+                                readChapterDao.markChapterAsRead(
+                                    ReadChapterEntity(
+                                        chapterUrl = startChapter.url,
+                                        comicUrl = comicUrl,
+                                        chapterTitle = startChapter.title
+                                    )
+                                )
+                            }
+                            onChapterClick(startChapter, d)
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.MenuBook,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = if (readChapterUrls.isNotEmpty()) "Lanjut Membaca" else "Mulai Baca (${startChapter.title})",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.2).sp
+                        )
+                    }
+                }
             }
         }
     }

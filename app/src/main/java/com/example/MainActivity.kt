@@ -63,6 +63,18 @@ class MainActivity : ComponentActivity() {
         coil.Coil.setImageLoader(
             coil.ImageLoader.Builder(this)
                 .okHttpClient(okHttpClient)
+                .memoryCache {
+                    coil.memory.MemoryCache.Builder(this)
+                        .maxSizePercent(0.25)
+                        .build()
+                }
+                .diskCache {
+                    coil.disk.DiskCache.Builder()
+                        .directory(cacheDir.resolve("manga_image_cache"))
+                        .maxSizeBytes(250L * 1024 * 1024)
+                        .build()
+                }
+                .respectCacheHeaders(false)
                 .build()
         )
 
@@ -226,6 +238,8 @@ class MainActivity : ComponentActivity() {
                         when (currentScreen) {
                             ScreenState.HOME -> {
                                 HomeScreen(
+                                    isDarkTheme = isDarkTheme,
+                                    onThemeToggle = { isDarkTheme = !isDarkTheme },
                                     onNavigateToReaderOnline = {
                                         currentScreen = ScreenState.ONLINE_CATALOG
                                     },

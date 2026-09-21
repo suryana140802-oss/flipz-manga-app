@@ -53,32 +53,53 @@ data class AppColors(
     val textPrimary: Color,
     val textSecondary: Color,
     val textMuted: Color,
+    val cardBackground: Color,
+    val dockBackground: Color,
+    val dockActiveBackground: Color,
+    val dockActiveContent: Color,
+    val dockInactiveContent: Color,
+    val pillTint: Color,
+    val borderSubtle: Color,
     val isLight: Boolean
 )
 
 val lightAppColors = AppColors(
     primary = SkyBluePrimaryLight,
-    deskDark = DeskLightPrimary,
-    deskMedium = DeskLightSecondary,
-    deskHighlight = DeskLightHighlight,
+    deskDark = Color(0xFFF8FAFC), // Slate 50 clean canvas
+    deskMedium = Color(0xFFFFFFFF), // Pure white for cards
+    deskHighlight = Color(0xFFF1F5F9), // Slate 100 secondary
     hudGlass = HudGlassBackgroundLight,
-    hudBorder = HudBorderColorLight,
-    textPrimary = TextPrimaryLight,
-    textSecondary = TextSecondaryLight,
-    textMuted = TextMutedLight,
+    hudBorder = Color(0xFFE2E8F0),
+    textPrimary = Color(0xFF0F172A), // Slate 900
+    textSecondary = Color(0xFF64748B), // Slate 500
+    textMuted = Color(0xFF94A3B8), // Slate 400
+    cardBackground = Color(0xFFFFFFFF),
+    dockBackground = Color(0xFFF1F5F9),
+    dockActiveBackground = Color(0xFF0F172A), // Black/Dark Navy active capsule in reference image
+    dockActiveContent = Color.White,
+    dockInactiveContent = Color(0xFF94A3B8),
+    pillTint = Color(0xFFE0F2FE), // Soft Sky Tint
+    borderSubtle = Color(0xFFE2E8F0),
     isLight = true
 )
 
 val darkAppColors = AppColors(
     primary = SkyBluePrimaryDark,
-    deskDark = DeskDarkColor,
-    deskMedium = DeskMediumColor,
-    deskHighlight = DeskHighlightColor,
+    deskDark = Color(0xFF0B0F17), // Deep Obsidian / Midnight Navy
+    deskMedium = Color(0xFF151D2A), // Slate 900 card surface
+    deskHighlight = Color(0xFF1E293B), // Slate 800 secondary
     hudGlass = HudGlassBackgroundDark,
-    hudBorder = HudBorderColorDark,
-    textPrimary = TextPrimaryDark,
-    textSecondary = TextSecondaryDark,
-    textMuted = TextMutedDark,
+    hudBorder = Color(0xFF334155),
+    textPrimary = Color(0xFFF8FAFC),
+    textSecondary = Color(0xFF94A3B8),
+    textMuted = Color(0xFF64748B),
+    cardBackground = Color(0xFF151D2A),
+    dockBackground = Color(0xFF151D2A),
+    dockActiveBackground = Color(0xFF0284C7), // Sky Blue active capsule in dark mode
+    dockActiveContent = Color.White,
+    dockInactiveContent = Color(0xFF64748B),
+    pillTint = Color(0xFF0C4A6E).copy(alpha = 0.4f),
+    borderSubtle = Color(0xFF334155),
     isLight = false
 )
 

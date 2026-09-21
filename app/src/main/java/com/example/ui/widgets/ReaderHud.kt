@@ -71,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -120,16 +121,17 @@ fun ReaderTopHud(
     modifier = modifier
       .fillMaxWidth()
       .statusBarsPadding()
-      .padding(horizontal = 12.dp, vertical = 6.dp)
+      .padding(horizontal = 14.dp, vertical = 8.dp)
   ) {
     Box(
       modifier = Modifier
         .fillMaxWidth()
-        .height(56.dp)
-        .clip(RoundedCornerShape(16.dp))
-        .background(colors.hudGlass)
-        .border(1.dp, colors.hudBorder, RoundedCornerShape(16.dp))
-        .padding(horizontal = 12.dp)
+        .height(58.dp)
+        .shadow(12.dp, RoundedCornerShape(28.dp), spotColor = colors.primary.copy(alpha = 0.25f))
+        .clip(RoundedCornerShape(28.dp))
+        .background(colors.cardBackground.copy(alpha = 0.96f))
+        .border(1.dp, colors.borderSubtle, RoundedCornerShape(28.dp))
+        .padding(horizontal = 14.dp)
     ) {
       Row(
         modifier = Modifier
@@ -568,16 +570,17 @@ fun ReaderBottomHud(
     modifier = modifier
       .fillMaxWidth()
       .navigationBarsPadding()
-      .padding(horizontal = 12.dp, vertical = 8.dp)
+      .padding(horizontal = 14.dp, vertical = 10.dp)
   ) {
     Box(
       modifier = Modifier
         .fillMaxWidth()
-        .height(56.dp)
-        .clip(RoundedCornerShape(16.dp))
-        .background(colors.hudGlass)
-        .border(1.dp, colors.hudBorder, RoundedCornerShape(16.dp))
-        .padding(horizontal = 12.dp)
+        .height(58.dp)
+        .shadow(12.dp, RoundedCornerShape(28.dp), spotColor = colors.primary.copy(alpha = 0.25f))
+        .clip(RoundedCornerShape(28.dp))
+        .background(colors.cardBackground.copy(alpha = 0.96f))
+        .border(1.dp, colors.borderSubtle, RoundedCornerShape(28.dp))
+        .padding(horizontal = 14.dp)
     ) {
       Row(
         modifier = Modifier
@@ -615,19 +618,19 @@ fun ReaderBottomHud(
           modifier = Modifier.weight(1f),
         )
 
-        Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
-        // Page Indicator Badge (Harmonized, fixed styling without layout shift)
+        // Page Indicator Badge (Capsule pill styling)
         Box(
           modifier = Modifier
-            .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(8.dp))
-            .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .background(colors.pillTint, RoundedCornerShape(12.dp))
+            .border(1.dp, colors.borderSubtle, RoundedCornerShape(12.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp),
           contentAlignment = Alignment.Center
         ) {
           Text(
             text = if (isPortrait) "Hal ${currentPage + 1}/$totalPages" else pageIndicatorText,
-            color = Color.White,
+            color = colors.primary,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1
@@ -652,19 +655,20 @@ fun ReaderBottomHud(
 
         Box(
           modifier = Modifier
-            .padding(horizontal = 3.dp)
+            .padding(horizontal = 4.dp)
             .width(1.dp)
-            .height(16.dp)
-            .background(Color.White.copy(alpha = 0.2f))
+            .height(18.dp)
+            .background(colors.borderSubtle)
         )
 
         // Magnifier Loupe Toggle
         IconButton(
           onClick = onToggleMagnifier,
           modifier = Modifier
-            .size(32.dp)
+            .size(34.dp)
+            .clip(CircleShape)
             .background(
-              if (isMagnifierActive) colors.primary.copy(alpha = 0.25f) else Color.Transparent,
+              if (isMagnifierActive) colors.pillTint else Color.Transparent,
               CircleShape
             )
         ) {
@@ -672,7 +676,7 @@ fun ReaderBottomHud(
             imageVector = if (isMagnifierActive) Icons.Rounded.ZoomIn else Icons.Rounded.Search,
             contentDescription = "Kaca Pembesar",
             tint = if (isMagnifierActive) colors.primary else colors.textPrimary,
-            modifier = Modifier.size(17.dp),
+            modifier = Modifier.size(18.dp),
           )
         }
       }
@@ -729,7 +733,7 @@ fun ComicPageSlider(
 
       // 1. Inactive Track Background
       drawRoundRect(
-        color = Color.White.copy(alpha = 0.2f),
+        color = colors.borderSubtle,
         topLeft = Offset(0f, centerY - trackHeight / 2f),
         size = Size(size.width, trackHeight),
         cornerRadius = cornerRadius
@@ -764,7 +768,7 @@ fun ComicPageSlider(
           val dotX = (i.toFloat() / maxVal.toFloat()) * size.width
           val isPassed = i <= clampedPage
           drawCircle(
-            color = if (isPassed) Color.White.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.35f),
+            color = if (isPassed) colors.primary else colors.textMuted.copy(alpha = 0.35f),
             radius = dotRadiusPx,
             center = Offset(dotX, centerY)
           )
@@ -774,7 +778,7 @@ fun ComicPageSlider(
       // 4. Sleek Vertical Pill Thumb Handle matching reference
       val thumbX = (progressFraction * size.width).coerceIn(thumbWidth / 2f, size.width - thumbWidth / 2f)
       drawRoundRect(
-        color = Color.White,
+        color = colors.primary,
         topLeft = Offset(thumbX - thumbWidth / 2f, centerY - thumbHeight / 2f),
         size = Size(thumbWidth, thumbHeight),
         cornerRadius = CornerRadius(thumbWidth / 2f, thumbWidth / 2f)

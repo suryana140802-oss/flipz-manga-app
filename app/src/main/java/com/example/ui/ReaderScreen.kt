@@ -299,6 +299,24 @@ fun ReaderScreen(
         // MODE A: Single Page Slide (Swipe/Tap to navigate)
         val currentPageObj = uiState.currentBook.pages.getOrNull(uiState.currentSinglePageIndex)
 
+        LaunchedEffect(uiState.currentSinglePageIndex, uiState.currentBook.id) {
+          val pages = uiState.currentBook.pages
+          val curr = uiState.currentSinglePageIndex
+          listOf(curr + 1, curr + 2, curr - 1).forEach { targetIdx ->
+            if (targetIdx in pages.indices) {
+              val page = pages[targetIdx]
+              val data = page.imageUrl ?: page.imageBytes
+              if (data != null) {
+                val req = ImageRequest.Builder(context)
+                  .data(data)
+                  .addHeader("Referer", "https://web1.mgkomik.cc/")
+                  .build()
+                coil.Coil.imageLoader(context).enqueue(req)
+              }
+            }
+          }
+        }
+
         Box(
           modifier = Modifier
             .fillMaxSize()
@@ -426,11 +444,33 @@ fun ReaderScreen(
           }
         }
 
-        LaunchedEffect(lazyListState) {
+        LaunchedEffect(uiState.currentSinglePageIndex) {
+          if (hasRestoredInitialScroll && lazyListState.firstVisibleItemIndex != uiState.currentSinglePageIndex) {
+            runCatching { lazyListState.scrollToItem(uiState.currentSinglePageIndex) }
+          }
+        }
+
+        LaunchedEffect(lazyListState, uiState.currentBook.id) {
           snapshotFlow { lazyListState.firstVisibleItemIndex }
             .distinctUntilChanged()
             .collect { index ->
               viewModel.onScrollToPage(index)
+              // ⚡ Proactive page preloading (4 pages ahead) to ensure zero scroll jank
+              val pages = uiState.currentBook.pages
+              for (offset in 1..4) {
+                val nextIdx = index + offset
+                if (nextIdx < pages.size) {
+                  val page = pages[nextIdx]
+                  val data = page.imageUrl ?: page.imageBytes
+                  if (data != null) {
+                    val req = ImageRequest.Builder(context)
+                      .data(data)
+                      .addHeader("Referer", "https://web1.mgkomik.cc/")
+                      .build()
+                    coil.Coil.imageLoader(context).enqueue(req)
+                  }
+                }
+              }
             }
         }
 
@@ -835,8 +875,8 @@ private fun ReaderFastScroller(
         val offsetDiff = kotlin.math.abs(offset - lastOffset)
 
         // Fast scroll detection:
-        // When index changes (swiping across pages) or fast offset jump (> 50px within < 150ms)
-        val isFast = indexDiff > 0 || (timeDiff < 150 && offsetDiff > 50)
+        // Only trigger on actual fast offset jumps (> 150px within < 200ms) to prevent appearing on slow scrolls
+        val isFast = timeDiff < 200 && offsetDiff > 150
 
         if (isFast) {
           isVisible = true

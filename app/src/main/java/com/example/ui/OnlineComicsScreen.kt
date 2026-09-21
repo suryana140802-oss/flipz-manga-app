@@ -66,6 +66,9 @@ import com.example.data.ComicDatabase
 import com.example.domain.model.Comic
 import com.example.ui.theme.LocalAppColors
 import com.example.ui.widgets.ContinueReadingCard
+import com.example.ui.widgets.DockItem
+import com.example.ui.widgets.EmptyStateView
+import com.example.ui.widgets.FloatingNavigationDock
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,26 +142,40 @@ fun OnlineComicsScreen(
         if (isSearchActive) searchExpanded = true
     }
 
-    Column(
+    val dockItems: List<DockItem<ComicFilter>> = remember {
+        listOf(
+            DockItem(ComicFilter.Latest, "Terbaru", Icons.Filled.CalendarToday, Icons.Outlined.CalendarToday),
+            DockItem(ComicFilter.Popular, "Populer", Icons.Filled.LocalFireDepartment, Icons.Outlined.LocalFireDepartment),
+            DockItem(ComicFilter.Ongoing, "Ongoing", Icons.Filled.AutoStories, Icons.Outlined.AutoStories),
+            DockItem(ComicFilter.Completed, "Tamat", Icons.Filled.CheckCircle, Icons.Outlined.CheckCircleOutline),
+            DockItem(ComicFilter.Bookmark, "Favorit", Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder)
+        )
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.deskDark)
-            .statusBarsPadding()
     ) {
-        // ── Top Bar ──────────────────────────────────────────────────────────
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .fillMaxSize()
+                .statusBarsPadding()
         ) {
-            Text(
-                text = if (isSearchActive) "Hasil Pencarian" else "Manga Online",
-                color = colors.textPrimary,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.weight(1f)
-            )
+            // ── Top Bar ──────────────────────────────────────────────────────────
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = if (isSearchActive) "Hasil Pencarian" else if (activeStatus == ComicFilter.Bookmark) "Koleksi Favorit" else "Flipz Manga",
+                    color = colors.textPrimary,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.weight(1f)
+                )
 
             // Switch Dark/Light Mode
             Box(
@@ -508,44 +525,29 @@ fun OnlineComicsScreen(
                 }
             } else if (comics.isEmpty() && isSearchActive) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Rounded.Search, contentDescription = null, tint = colors.textMuted, modifier = Modifier.size(48.dp))
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("Tidak ada hasil untuk", color = colors.textMuted, fontSize = 14.sp)
-                        Text("\"$searchQuery\"", color = colors.textSecondary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    }
+                    EmptyStateView(
+                        title = "Komik Tidak Ditemukan",
+                        subtitle = "Tidak ada komik yang cocok dengan \"$searchQuery\". Coba cari dengan judul lain.",
+                        actionButtonText = "Hapus Pencarian",
+                        onActionClick = { viewModel.clearSearch(); focusManager.clearFocus() }
+                    )
                 }
             } else if (comics.isEmpty() && !isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     if (activeStatus == ComicFilter.Bookmark) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.BookmarkBorder,
-                                contentDescription = null,
-                                tint = colors.textMuted,
-                                modifier = Modifier.size(54.dp)
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-                            Text(
-                                text = "Belum Ada Komik Favorit",
-                                color = colors.textPrimary,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "Tekan tombol Bookmark (❤️) pada halaman detail komik untuk menyimpannya di sini!",
-                                color = colors.textMuted,
-                                fontSize = 13.sp,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 18.sp
-                            )
-                        }
+                        EmptyStateView(
+                            title = "Belum Ada Favorit",
+                            subtitle = "Tandai komik favoritmu dari katalog agar tersimpan rapi dan mudah dibaca kapan saja.",
+                            actionButtonText = "+ Jelajah Katalog",
+                            onActionClick = { viewModel.setStatusFilter(ComicFilter.Popular) }
+                        )
                     } else {
-                        Text("Tidak ada komik ditemukan", color = colors.textMuted, fontSize = 14.sp)
+                        EmptyStateView(
+                            title = "Belum Ada Komik",
+                            subtitle = "Tidak ada komik yang tersedia pada kategori ini saat ini.",
+                            actionButtonText = "Muat Ulang",
+                            onActionClick = { viewModel.loadLatestComics() }
+                        )
                     }
                 }
             } else {
@@ -562,11 +564,11 @@ fun OnlineComicsScreen(
                     state = listState,
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 96.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(comics) { comic ->
+                    items(comics, key = { it.url }) { comic ->
                         ComicGridItem(comic = comic, onClick = { onComicClick(comic.url) })
                     }
                     if (isLoading) {
@@ -579,14 +581,16 @@ fun OnlineComicsScreen(
                 }
             }
         }
-
-        // ── Bottom Navigation Bar (Image 2 Reference) ─────────────────────────
-        OnlineBottomBar(
-            activeFilter = activeStatus,
-            onFilterSelected = { viewModel.setStatusFilter(it) },
-            isDarkTheme = isDarkTheme
-        )
     }
+
+    // ── Floating Navigation Dock (Sesuai Referensi Gambar) ────────────────
+    FloatingNavigationDock(
+        items = dockItems,
+        selectedItem = activeStatus,
+        onItemSelected = { viewModel.setStatusFilter(it) },
+        modifier = Modifier.align(Alignment.BottomCenter)
+    )
+}
 
     // ── Genre Filter Bottom Sheet ─────────────────────────────────────────────
     if (showGenreSheet) {
@@ -677,145 +681,65 @@ fun OnlineComicsScreen(
 }
 
 @Composable
-fun OnlineBottomBar(
-    activeFilter: ComicFilter,
-    onFilterSelected: (ComicFilter) -> Unit,
-    isDarkTheme: Boolean
-) {
-    val barBg = if (isDarkTheme) Color(0xFF07080A) else Color.White
-    val borderCol = if (isDarkTheme) Color(0xFF1E2129) else Color(0xFFE5E7EB)
-
+fun ComicGridItem(comic: Comic, onClick: () -> Unit) {
+    val colors = LocalAppColors.current
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = barBg,
-        shadowElevation = 8.dp
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = colors.cardBackground,
+        border = BorderStroke(1.dp, colors.borderSubtle),
+        shadowElevation = 2.dp
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-        ) {
-            // Hairline top border
+        Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(1.dp)
-                    .background(borderCol)
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .aspectRatio(2f / 3f)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .background(colors.deskHighlight)
             ) {
-                statusFilters.forEach { filter ->
-                    val selected = activeFilter == filter
-                    val (selectedIcon, unselectedIcon) = when (filter) {
-                        ComicFilter.Latest -> Pair(Icons.Filled.CalendarToday, Icons.Outlined.CalendarToday)
-                        ComicFilter.Popular -> Pair(Icons.Filled.LocalFireDepartment, Icons.Outlined.LocalFireDepartment)
-                        ComicFilter.Ongoing -> Pair(Icons.Filled.AutoStories, Icons.Outlined.AutoStories)
-                        ComicFilter.Completed -> Pair(Icons.Filled.CheckCircle, Icons.Outlined.CheckCircleOutline)
-                        ComicFilter.Bookmark -> Pair(Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder)
-                        else -> Pair(Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder)
-                    }
-
-                    val iconTint = if (selected) {
-                        if (isDarkTheme) Color.White else Color(0xFF0F172A)
-                    } else {
-                        Color(0xFF71717A)
-                    }
-
-                    val textTint = if (selected) {
-                        if (isDarkTheme) Color.White else Color(0xFF0F172A)
-                    } else {
-                        Color(0xFF71717A)
-                    }
-
-                    Box(
+                AsyncImage(
+                    model = comic.thumbnailUrl,
+                    contentDescription = comic.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+                if (comic.latestChapter.isNotBlank()) {
+                    Surface(
                         modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp, vertical = 2.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable { onFilterSelected(filter) }
-                            .padding(vertical = 4.dp),
-                        contentAlignment = Alignment.Center
+                            .align(Alignment.BottomStart)
+                            .padding(6.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        color = colors.primary.copy(alpha = 0.95f)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = if (selected) selectedIcon else unselectedIcon,
-                                contentDescription = filter.label,
-                                tint = iconTint,
-                                modifier = Modifier.size(23.dp)
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = filter.label,
-                                color = textTint,
-                                fontSize = 11.sp,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        Text(
+                            text = comic.latestChapter,
+                            color = Color.White,
+                            fontSize = 9.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun ComicGridItem(comic: Comic, onClick: () -> Unit) {
-    val colors = LocalAppColors.current
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(2f / 3f)
-                .clip(RoundedCornerShape(10.dp))
-                .background(colors.deskMedium)
-        ) {
-            AsyncImage(
-                model = comic.thumbnailUrl,
-                contentDescription = comic.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = comic.title,
+                color = colors.textPrimary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 16.sp,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(bottom = 10.dp)
             )
-            if (comic.latestChapter.isNotBlank()) {
-                Surface(
-                    modifier = Modifier.align(Alignment.BottomStart).padding(4.dp),
-                    shape = RoundedCornerShape(4.dp),
-                    color = colors.primary.copy(alpha = 0.92f)
-                ) {
-                    Text(
-                        text = comic.latestChapter,
-                        color = Color.White,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
         }
-        Spacer(modifier = Modifier.height(5.dp))
-        Text(
-            text = comic.title,
-            color = colors.textPrimary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            lineHeight = 16.sp
-        )
     }
 }

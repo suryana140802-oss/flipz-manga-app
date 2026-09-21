@@ -14,7 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.CardGiftcard
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.MenuBook
@@ -41,12 +42,15 @@ import com.example.ui.theme.LocalAppColors
 
 @Composable
 fun HomeScreen(
+    isDarkTheme: Boolean = true,
+    onThemeToggle: () -> Unit = {},
     onNavigateToReaderOnline: () -> Unit,
     onImportArchiveClick: () -> Unit,
     onImportImagesClick: () -> Unit,
     onSupportClick: (() -> Unit)? = null,
     onResumeReading: ((com.example.data.entity.ReadingProgressEntity) -> Unit)? = null
 ) {
+    val colors = LocalAppColors.current
     val context = androidx.compose.ui.platform.LocalContext.current
     val db = remember(context) { com.example.data.ComicDatabase.getInstance(context) }
     val latestProgress by db.readingProgressDao().getLatestProgress().collectAsState(initial = null)
@@ -59,7 +63,7 @@ fun HomeScreen(
             title = {
                 Text(
                     text = "Import Komik Offline",
-                    color = Color.White,
+                    color = colors.textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -67,7 +71,7 @@ fun HomeScreen(
             text = {
                 Text(
                     text = "Pilih file arsip (ZIP, RAR, CBZ, CBR) atau pilih sekumpulan gambar chapter langsung dari memori perangkat untuk dibaca secara offline.",
-                    color = Color(0xFF94A3B8),
+                    color = colors.textSecondary,
                     fontSize = 14.sp,
                     lineHeight = 20.sp
                 )
@@ -79,7 +83,7 @@ fun HomeScreen(
                 }) {
                     Text(
                         "Pilih Arsip (CBZ/ZIP)",
-                        color = Color(0xFF38BDF8),
+                        color = colors.primary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -91,30 +95,30 @@ fun HomeScreen(
                 }) {
                     Text(
                         "Pilih Gambar",
-                        color = Color(0xFF94A3B8),
+                        color = colors.textSecondary,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             },
-            containerColor = Color(0xFF1E293B),
-            titleContentColor = Color.White,
-            textContentColor = Color(0xFF94A3B8),
+            containerColor = colors.cardBackground,
+            titleContentColor = colors.textPrimary,
+            textContentColor = colors.textSecondary,
             shape = RoundedCornerShape(20.dp)
         )
     }
 
-    // Deep cinematic pure black canvas (MangaPlus onboarding style)
+    // Adaptive canvas: Slate 50 in Light mode, Obsidian Navy in Dark mode
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(colors.deskDark)
     ) {
 
         // ── Top: Manga collage hero image ──────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.60f)
+                .fillMaxHeight(0.55f)
                 .align(Alignment.TopCenter)
         ) {
             Image(
@@ -125,24 +129,43 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Multi-stop cinematic dark gradient overlay
-            // Seamlessly blends from top cover illumination down into pure pitch black
+            // Smooth multi-stop gradient overlay that blends into canvas background
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
                             colorStops = arrayOf(
-                                0.0f to Color.Black.copy(alpha = 0.40f),  // Status bar readability
-                                0.20f to Color.Black.copy(alpha = 0.15f), // Clear cover visibility
-                                0.48f to Color.Black.copy(alpha = 0.45f), // Gentle transition begins
-                                0.72f to Color.Black.copy(alpha = 0.85f), // Strong fading
-                                0.92f to Color.Black,                     // Pure solid black
-                                1.0f to Color.Black
+                                0.0f to colors.deskDark.copy(alpha = if (isDarkTheme) 0.50f else 0.25f),
+                                0.25f to colors.deskDark.copy(alpha = if (isDarkTheme) 0.20f else 0.10f),
+                                0.50f to colors.deskDark.copy(alpha = if (isDarkTheme) 0.60f else 0.45f),
+                                0.78f to colors.deskDark.copy(alpha = 0.92f),
+                                1.0f to colors.deskDark
                             )
                         )
                     )
             )
+
+            // Top Right: Theme Toggle
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .statusBarsPadding()
+                    .padding(16.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(colors.cardBackground.copy(alpha = 0.85f))
+                    .border(1.dp, colors.borderSubtle, CircleShape)
+                    .clickable(onClick = onThemeToggle),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (isDarkTheme) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
+                    contentDescription = "Ganti Tema",
+                    tint = colors.textPrimary,
+                    modifier = Modifier.size(19.dp)
+                )
+            }
         }
 
 
@@ -187,7 +210,7 @@ fun HomeScreen(
                 ) {
                     Text(
                         text = "Flipz",
-                        color = Color.White,
+                        color = colors.textPrimary,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Black,
                         letterSpacing = (-0.5).sp,
@@ -203,7 +226,7 @@ fun HomeScreen(
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = "MANGA",
-                        color = Color(0xFF38BDF8),
+                        color = colors.primary,
                         fontSize = 10.5.sp,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = 2.4.sp,
@@ -224,7 +247,7 @@ fun HomeScreen(
             // Headline & Description (MangaPlus onboarding typography)
             Text(
                 text = "Mulai Membaca",
-                color = Color.White,
+                color = colors.textPrimary,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (-0.3).sp,
@@ -235,7 +258,7 @@ fun HomeScreen(
 
             Text(
                 text = "Jelajahi ribuan chapter manga terbaru secara online atau buka koleksi komik offline favoritmu.",
-                color = Color(0xFF94A3B8),
+                color = colors.textSecondary,
                 fontSize = 13.sp,
                 lineHeight = 19.sp,
                 textAlign = TextAlign.Center,
@@ -264,7 +287,7 @@ fun HomeScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            // Secondary CTA: Translucent Glass Pill Button
+            // Secondary CTA: Clean Surface Pill Button
             MangaPillButton(
                 title = "Import Komik Offline",
                 icon = Icons.Rounded.FolderOpen,
@@ -272,27 +295,68 @@ fun HomeScreen(
                 onClick = { showImportGuide = true }
             )
 
+            Spacer(Modifier.height(16.dp))
+            
+            // Saweria Banner
+            val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(colors.cardBackground)
+                    .border(1.dp, colors.borderSubtle, RoundedCornerShape(16.dp))
+                    .clickable { uriHandler.openUri("https://saweria.co/suryaaln") }
+                    .padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.CardGiftcard,
+                        contentDescription = "Dukung Kreator",
+                        tint = colors.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Dukung Pengembang",
+                            color = colors.textPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Bantu Flipz terus berkembang via Saweria",
+                            color = colors.textSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+
             if (onSupportClick != null) {
                 Spacer(Modifier.height(14.dp))
                 Row(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.06f))
-                        .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
+                        .background(colors.pillTint)
+                        .border(1.dp, colors.borderSubtle, CircleShape)
                         .clickable(onClick = onSupportClick)
                         .padding(horizontal = 14.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.Favorite,
+                        imageVector = Icons.Rounded.PlayCircle,
                         contentDescription = null,
-                        tint = Color(0xFFF43F5E),
+                        tint = colors.primary,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = "Dukung Flipz (Tonton Iklan Singkat)",
-                        color = Color.White.copy(alpha = 0.7f),
+                        text = "Tonton Iklan Singkat",
+                        color = colors.textSecondary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -311,14 +375,14 @@ fun HomeScreen(
                         .width(28.dp)
                         .height(4.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF38BDF8))
+                        .background(colors.primary)
                 )
                 Spacer(Modifier.width(6.dp))
                 Box(
                     modifier = Modifier
                         .size(4.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.25f))
+                        .background(colors.borderSubtle)
                 )
             }
 
@@ -326,7 +390,7 @@ fun HomeScreen(
 
             Text(
                 text = "read more. scroll less.",
-                color = Color.White.copy(alpha = 0.35f),
+                color = colors.textMuted,
                 fontSize = 11.sp,
                 letterSpacing = 0.5.sp,
                 textAlign = TextAlign.Center
@@ -336,7 +400,7 @@ fun HomeScreen(
 
             Text(
                 text = "by Surya",
-                color = Color.White.copy(alpha = 0.18f),
+                color = colors.textMuted.copy(alpha = 0.6f),
                 fontSize = 10.sp
             )
         }
@@ -350,6 +414,7 @@ private fun MangaPillButton(
     isPrimary: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = LocalAppColors.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -371,13 +436,13 @@ private fun MangaPillButton(
                 if (isPrimary) {
                     Modifier.background(
                         Brush.horizontalGradient(
-                            listOf(Color(0xFF0284C7), Color(0xFF0EA5E9))
+                            listOf(Color(0xFF0284C7), Color(0xFF38BDF8))
                         )
                     )
                 } else {
                     Modifier
-                        .background(Color.White.copy(alpha = 0.08f))
-                        .border(1.dp, Color.White.copy(alpha = 0.16f), pillShape)
+                        .background(colors.cardBackground)
+                        .border(1.dp, colors.borderSubtle, pillShape)
                 }
             )
             .clickable(
@@ -394,13 +459,13 @@ private fun MangaPillButton(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (isPrimary) Color.White else Color(0xFFE2E8F0),
+                tint = if (isPrimary) Color.White else colors.textPrimary,
                 modifier = Modifier.size(if (isPrimary) 22.dp else 19.dp)
             )
             Spacer(Modifier.width(10.dp))
             Text(
                 text = title,
-                color = if (isPrimary) Color.White else Color(0xFFE2E8F0),
+                color = if (isPrimary) Color.White else colors.textPrimary,
                 fontSize = if (isPrimary) 16.sp else 14.sp,
                 fontWeight = if (isPrimary) FontWeight.Bold else FontWeight.SemiBold,
                 letterSpacing = (-0.2).sp
